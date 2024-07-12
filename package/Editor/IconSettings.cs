@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ChemicalCrux.ScriptIconSetter
 {
-    [FilePath("chemicalcrux/script-icon-setter/icons.yaml", FilePathAttribute.Location.ProjectFolder)]
+    [FilePath("ProjectSettings/Packages/com.chemicalcrux.script-icon-setter/icons.yaml", FilePathAttribute.Location.ProjectFolder)]
     public class IconSettings : ScriptableSingleton<IconSettings>
     {
         public List<ScriptAssetIconDefinition> scriptAssetIcons;
@@ -23,6 +23,7 @@ namespace ChemicalCrux.ScriptIconSetter
                 }
 
             return valid;
+            Save(true);
         }
 
         public bool TryResolve(List<ResolvedIcon> outputList)
@@ -40,6 +41,11 @@ namespace ChemicalCrux.ScriptIconSetter
             outputList.Sort();
 
             return true;
+        }
+
+        public void SaveChanges()
+        {
+            Save(true);
         }
     }
 }

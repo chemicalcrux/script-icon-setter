@@ -16,6 +16,11 @@ namespace ChemicalCrux.ScriptIconSetter
             titleContent.text = "Icon Setter";
         }
 
+        void OnDestroy()
+        {
+            IconSettings.instance.SaveChanges();
+        }
+
         public void CreateGUI()
         {
             SerializedObject obj = new(IconSettings.instance);
@@ -29,7 +34,7 @@ namespace ChemicalCrux.ScriptIconSetter
             var folders = new PropertyField(obj.FindProperty(nameof(IconSettings.folders)));
             folders.Bind(obj);
             rootVisualElement.Add(folders);
-
+            
             var row = new VisualElement
             {
                 style =
@@ -57,6 +62,7 @@ namespace ChemicalCrux.ScriptIconSetter
             execute.style.flexGrow = 1;
 
             rootVisualElement.Add(row);
+            rootVisualElement.TrackSerializedObjectValue(obj, Save);
         }
 
         [MenuItem("Window/Icon Setter")]
@@ -117,6 +123,11 @@ namespace ChemicalCrux.ScriptIconSetter
             }
 
             Debug.Log($"Updated {steps} icon(s).");
+        }
+        
+        void Save(SerializedObject _)
+        {
+            IconSettings.instance.SaveChanges();
         }
     }
 }
