@@ -1,0 +1,11 @@
+{
+    "name": "com.chemicalcrux.script-icon-setter",
+    "version": "0.1.0",
+    "description": "Automatically sets icons for your Unity MonoScript assets.",
+    "displayName": "Script Icon Setter",
+    "author": {
+        "name": "Fen",
+        "email": "chemicalcrux@gmail.com"
+    },
+    "license": "MIT"
+}
