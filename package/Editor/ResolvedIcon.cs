@@ -6,9 +6,9 @@ namespace ChemicalCrux.ScriptIconSetter
 {
     public class ResolvedIcon : IComparable<ResolvedIcon>
     {
-        public readonly Type type;
-        public readonly Texture2D icon;
         public readonly GUID guid;
+        public readonly Texture2D icon;
+        public readonly Type type;
 
         public ResolvedIcon(Type type, Texture2D icon)
         {
@@ -28,7 +28,7 @@ namespace ChemicalCrux.ScriptIconSetter
 
             if (other.type == null)
                 return 1;
-            
+
             if (type.IsAssignableFrom(other.type))
                 return 1;
 

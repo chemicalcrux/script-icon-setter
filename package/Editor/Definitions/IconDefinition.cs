@@ -11,15 +11,16 @@ namespace ChemicalCrux.ScriptIconSetter.Definitions
         public virtual bool Validate()
         {
             bool valid = true;
-            
+
             if (icon == null)
             {
-                Debug.LogWarning($"Missing icon reference.");
+                Debug.LogWarning("Missing icon reference.");
                 valid = false;
             }
 
             return valid;
         }
+
         public abstract ResolvedIcon Resolve();
     }
 }

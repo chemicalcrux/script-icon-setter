@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -9,18 +9,18 @@ namespace ChemicalCrux.ScriptIconSetter
 {
     public class IconSetterWindow : EditorWindow
     {
-        [MenuItem("Window/Icon Setter")]
-        public static void ShowWindow()
+        private void OnEnable()
         {
-            IconSetterWindow _ = GetWindow<IconSetterWindow>();
+            var icon = Resources.Load<Texture2D>("Script Icon Setter/window-icon");
+            titleContent = new GUIContent(icon);
+            titleContent.text = "Icon Setter";
         }
 
         public void CreateGUI()
         {
-            Debug.Log("Creating GUI");
             SerializedObject obj = new(IconSettings.instance);
 
-            var property = obj.FindProperty(nameof(IconSettings.scriptAssetIcons));
+            SerializedProperty property = obj.FindProperty(nameof(IconSettings.scriptAssetIcons));
             var list = new PropertyField(property);
             rootVisualElement.Add(list);
 
@@ -44,53 +44,79 @@ namespace ChemicalCrux.ScriptIconSetter
             row.Add(validate);
             validate.style.flexGrow = 1;
 
-            var resolve = new Button();
-            resolve.text = "Resolve";
-            resolve.clicked += Execute;
-            row.Add(resolve);
-            resolve.style.flexGrow = 1;
+            var dryRun = new Button();
+            dryRun.text = "Dry Run";
+            dryRun.clicked += DryRun;
+            row.Add(dryRun);
+            dryRun.style.flexGrow = 1;
+
+            var execute = new Button();
+            execute.text = "Execute";
+            execute.clicked += Execute;
+            row.Add(execute);
+            execute.style.flexGrow = 1;
 
             rootVisualElement.Add(row);
         }
 
-        void Execute()
+        [MenuItem("Window/Icon Setter")]
+        public static void ShowWindow()
+        {
+            _ = GetWindow<IconSetterWindow>();
+        }
+
+        private List<IconChange> GetPlan()
         {
             List<ResolvedIcon> icons = new();
 
             if (!IconSettings.instance.TryResolve(icons))
-                return;
-
-            foreach (var icon in icons)
-                Debug.Log(icon);
+                return new List<IconChange>();
 
             List<string> paths = new();
 
-            foreach (var folder in IconSettings.instance.folders)
-            {
+            foreach (DefaultAsset folder in IconSettings.instance.folders)
                 paths.Add(AssetDatabase.GetAssetPath(folder));
-            }
-            
-            foreach (var guid in AssetDatabase.FindAssets("t:monoscript", paths.ToArray()))
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                Debug.Log(path);
-                
-                var script = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
-                var importer = AssetImporter.GetAtPath(path) as MonoImporter;
 
-                foreach (var icon in icons)
-                {
+            List<IconChange> plan = new();
+
+            foreach (string guid in AssetDatabase.FindAssets("t:monoscript", paths.ToArray()))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+
+                var script = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+
+                foreach (ResolvedIcon icon in icons)
                     if (icon.type.IsAssignableFrom(script.GetClass()))
                     {
-                        Debug.Log($"{icon.type} matched {script.GetClass()}");
-                        importer.SetIcon(icon.icon);
-                        importer.SaveAndReimport();
-                        
+                        plan.Add(new IconChange(script, icon.icon));
                         break;
                     }
-                }
             }
 
+            return plan;
+        }
+
+        private void DryRun()
+        {
+            var plan = GetPlan();
+
+            int validSteps = plan.Count(step => step.IsValid());
+
+            Debug.Log($"{validSteps}/{plan.Count} icons will be changed.");
+        }
+
+        private void Execute()
+        {
+            var plan = GetPlan();
+
+            int steps = 0;
+            foreach (IconChange step in plan.Where(step => step.IsValid()))
+            {
+                step.Apply();
+                ++steps;
+            }
+
+            Debug.Log($"Updated {steps} icon(s).");
         }
     }
 }

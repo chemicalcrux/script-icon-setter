@@ -12,10 +12,10 @@ namespace ChemicalCrux.ScriptIconSetter.Definitions
         public override bool Validate()
         {
             bool valid = base.Validate();
-            
+
             if (script == null)
             {
-                Debug.LogWarning($"Missing script reference.");
+                Debug.LogWarning("Missing script reference.");
                 valid = false;
             }
 
